@@ -20,6 +20,8 @@ struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
     // 全てのプロジェクトを取得（データリセット時に必要となるため）
     @Query private var projects: [Project]
+    
+    @EnvironmentObject var productManager: ProductManager
 
     var body: some View {
         NavigationStack {
@@ -68,6 +70,19 @@ struct SettingsView: View {
                         Text("この操作は元に戻せません。")
                     }
                 }
+                Section("アプリについて") {
+                    if productManager.isProVersionUnlocked {
+                        Text("Proバージョンが有効です")
+                            .foregroundColor(.green)
+                    } else {
+                        Button("Proバージョンにアップグレード（V2）") {
+                            productManager.purchaseProVersion() // 未実装の購入処理を呼び出す
+                        }
+                    }
+                    Button("購入履歴を復元") {
+                        productManager.restorePurchases() // 未実装の復元処理を呼び出す
+                    }
+                }
             }
             .navigationTitle("設定")
         }
@@ -78,10 +93,9 @@ struct SettingsView: View {
 #Preview {
     // プレビュー用にインメモリのModelContainerを設定
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
-
-    // ここを修正: モデルの型を配列ではなく、カンマ区切りで直接列挙します。
     let container = try! ModelContainer(for: Project.self, Task.self, TimeEntry.self, configurations: config)
 
     SettingsView()
         .modelContainer(container) // プレビューにもmodelContainerが必要
+        .environmentObject(ProductManager()) // ★ここにも`.environmentObject`を追加
 }
