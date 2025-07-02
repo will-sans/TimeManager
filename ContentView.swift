@@ -19,7 +19,7 @@ struct ContentView: View {
                 } else {
                     // プロジェクトの一覧を表示
                     ForEach(projects) { project in
-                        NavigationLink(destination: Text("プロジェクト詳細ビュー（後で実装）")) {
+                        NavigationLink(destination: ProjectDetailView(project: project)) {
                             Text(project.name)
                         }
                     }
