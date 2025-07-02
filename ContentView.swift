@@ -20,7 +20,13 @@ struct ContentView: View {
                     // プロジェクトの一覧を表示
                     ForEach(projects) { project in
                         NavigationLink(destination: ProjectDetailView(project: project)) {
-                            Text(project.name)
+                            HStack {
+                                // プロジェクトの色を表示する円
+                                Circle()
+                                    .fill(Color(hex: project.colorHex) ?? .blue) // Helper extensionが必要
+                                    .frame(width: 10, height: 10)
+                                Text(project.name)
+                            }
                         }
                     }
                     .onDelete(perform: deleteProjects) // スワイプで削除

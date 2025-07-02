@@ -6,20 +6,67 @@
 //
 
 import SwiftUI
+import SwiftData // SwiftDataのモデルを削除するために必要
 
 struct SettingsView: View {
+    // 週の開始曜日を保存するためのAppStorage
+    // AppStorageはUserDefaultsに値を自動で保存・読み込みます
+    @AppStorage("startOfWeek") var startOfWeek: Int = 1 // 1=日曜日, 2=月曜日
+
+    // 全データリセットのアラート表示を制御するためのState
+    @State private var showingResetAlert = false
+
+    // SwiftDataのコンテキストにアクセス
+    @Environment(\.modelContext) private var modelContext
+    // 全てのプロジェクトを取得（データリセット時に必要となるため）
+    @Query private var projects: [Project]
+
     var body: some View {
         NavigationStack {
             Form {
                 Section("一般") {
-                    Text("週の開始曜日（後で実装）")
-                    Text("時間の表示形式（後で実装）")
+                    Picker("週の開始曜日", selection: $startOfWeek) {
+                        Text("日曜日").tag(1)
+                        Text("月曜日").tag(2)
+                    }
                 }
+
                 Section("データ") {
-                    Button("全データをリセット（後で実装）") {
-                        // アラートなどで確認を促す
+                    Button("全データをリセット") {
+                        showingResetAlert = true // アラートを表示する
                     }
                     .foregroundColor(.red)
+                    // 全データリセットの確認アラート
+                    .alert("全データを削除しますか？", isPresented: $showingResetAlert) {
+                        Button("削除", role: .destructive) {
+                            // MARK: - 全データ削除ロジック
+                            // ここにデータを全て削除するロジックを実装します
+                            // SwiftDataの場合、各モデルインスタンスを個別に削除する必要があります
+                            do {
+                                // TimeEntryを全て削除
+                                try modelContext.delete(model: TimeEntry.self)
+                                // Taskを全て削除
+                                try modelContext.delete(model: Task.self)
+                                // Projectを全て削除
+                                try modelContext.delete(model: Project.self)
+
+                                // または、projects @Queryで取得したものをループで削除する方法
+                                // for project in projects {
+                                //    modelContext.delete(project)
+                                // }
+                                // `delete(model:)` を使う方がシンプルです
+
+                                // 削除が成功したことをユーザーに知らせるなどのフィードバック
+                                print("全てのデータが削除されました。")
+                            } catch {
+                                print("データ削除中にエラーが発生しました: \(error)")
+                                // エラーをユーザーに通知するなどの処理
+                            }
+                        }
+                        Button("キャンセル", role: .cancel) { }
+                    } message: {
+                        Text("この操作は元に戻せません。")
+                    }
                 }
             }
             .navigationTitle("設定")
@@ -27,6 +74,14 @@ struct SettingsView: View {
     }
 }
 
+// SettingsView.swift の一番下にある #Preview の箇所
 #Preview {
+    // プレビュー用にインメモリのModelContainerを設定
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+
+    // ここを修正: モデルの型を配列ではなく、カンマ区切りで直接列挙します。
+    let container = try! ModelContainer(for: Project.self, Task.self, TimeEntry.self, configurations: config)
+
     SettingsView()
+        .modelContainer(container) // プレビューにもmodelContainerが必要
 }
