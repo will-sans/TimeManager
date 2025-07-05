@@ -26,21 +26,21 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("一般") {
-                    Picker("週の開始曜日", selection: $startOfWeek) {
-                        Text("日曜日").tag(1)
-                        Text("月曜日").tag(2)
+                Section("General") {
+                    Picker("StartOfWeek", selection: $startOfWeek) {
+                        Text("Sunday").tag(1)
+                        Text("Monday").tag(2)
                     }
                 }
 
-                Section("データ") {
-                    Button("全データをリセット") {
+                Section("Data") {
+                    Button("ResetAllData") {
                         showingResetAlert = true // アラートを表示する
                     }
                     .foregroundColor(.red)
                     // 全データリセットの確認アラート
-                    .alert("全データを削除しますか？", isPresented: $showingResetAlert) {
-                        Button("削除", role: .destructive) {
+                    .alert("DeleteAllDataConfirmation", isPresented: $showingResetAlert) {
+                        Button("Delete", role: .destructive) {
                             // MARK: - 全データ削除ロジック
                             // ここにデータを全て削除するロジックを実装します
                             // SwiftDataの場合、各モデルインスタンスを個別に削除する必要があります
@@ -65,26 +65,26 @@ struct SettingsView: View {
                                 // エラーをユーザーに通知するなどの処理
                             }
                         }
-                        Button("キャンセル", role: .cancel) { }
+                        Button("Cancel", role: .cancel) { }
                     } message: {
-                        Text("この操作は元に戻せません。")
+                        Text("ThisActionCannotBeUndone")
                     }
                 }
-                Section("アプリについて") {
+                Section("AboutApp") {
                     if productManager.isProVersionUnlocked {
-                        Text("Proバージョンが有効です")
+                        Text("ProVersionEnabled")
                             .foregroundColor(.green)
                     } else {
-                        Button("Proバージョンにアップグレード（V2）") {
+                        Button("UpgradeToProVersionV2") {
                             productManager.purchaseProVersion() // 未実装の購入処理を呼び出す
                         }
                     }
-                    Button("購入履歴を復元") {
+                    Button("RestorePurchases") {
                         productManager.restorePurchases() // 未実装の復元処理を呼び出す
                     }
                 }
             }
-            .navigationTitle("設定")
+            .navigationTitle("Settings")
         }
     }
 }

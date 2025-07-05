@@ -27,7 +27,7 @@ struct ReportView: View {
         NavigationStack {
             VStack {
                 // 期間選択ピッカー
-                Picker("期間", selection: $selectedPeriod) {
+                Picker("Period", selection: $selectedPeriod) {
                     ForEach(Period.allCases) { period in
                         Text(period.rawValue).tag(period)
                     }
@@ -40,12 +40,12 @@ struct ReportView: View {
                 case .daily:
                     DailyReportView(selectedDate: $selectedDate, allTimeEntries: timeEntries)
                 case .weekly:
-                    Text("週別レポート（後で実装）")
+                    Text("WeeklyReportLater")
                         .font(.title3)
                         .padding()
                     // WeeklyReportView(allTimeEntries: timeEntries) のような形で実装
                 case .monthly:
-                    Text("月別レポート（後で実装）")
+                    Text("MonthlyReportLater")
                         .font(.title3)
                         .padding()
                     // MonthlyReportView(allTimeEntries: timeEntries) のような形で実装
@@ -53,7 +53,7 @@ struct ReportView: View {
 
                 Spacer() // コンテンツを上部に寄せる
             }
-            .navigationTitle("レポート")
+            .navigationTitle("Report")
         }
     }
 }
@@ -108,15 +108,15 @@ struct DailyReportView: View {
             .padding()
 
             // 今日の合計時間
-            Text("今日の合計: \(formattedDuration(totalDurationToday))")
+            Text("TotalTodayFormat \(formattedDuration(totalDurationToday))")
                 .font(.headline)
                 .padding(.bottom, 5)
 
             // プロジェクトごとの内訳
             List {
-                Section("プロジェクト別の内訳") {
+                Section("BreakdownByProject") {
                     if aggregatedData.isEmpty {
-                        Text("この日は記録がありません。")
+                        Text("NoRecordsForThisDay")
                             .foregroundColor(.gray)
                     } else {
                         ForEach(aggregatedData.keys.sorted(), id: \.self) { projectName in

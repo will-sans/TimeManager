@@ -1,36 +1,66 @@
 import SwiftUI
 import SwiftData
+import Foundation
 
 struct TaskDetailView: View {
     @Environment(\.modelContext) private var modelContext
-    @Bindable var task: Task // 選択されたタスクを受け取る
+    @Environment(\.dismiss) private var dismiss
 
-    @State private var isTimerRunning = false // タイマーが実行中かどうかのフラグ
-    @State private var currentDuration: TimeInterval = 0 // 現在の計測時間
-    @State private var timer: Timer? // タイマーインスタンス
-    @State private var currentEntry: TimeEntry? // 現在計測中のTimeEntry
+    @Bindable var task: Task
 
-    // UserDefaultsにタイマー状態を保存するためのキー
-    // 各タスクにユニークなIDを使用
-    private var timerRunningKey: String { "timerRunning_\(task.id.uuidString)" } // ★修正: .id.uuidString
-    private var timerStartTimeKey: String { "timerStartTime_\(task.id.uuidString)" } // ★修正: .id.uuidString
-    private var currentEntryIDKey: String { "currentEntryID_\(task.id.uuidString)" } // ★修正: .id.uuidString
-    
-    // TimeEntryをIDで取得するためのヘルパー
+    @State private var newTaskName: String = ""
+    @State private var newTaskMemo: String = ""
+    // ★削除: @State private var newCategory: String = ""
+    @State private var newSatisfactionScore: Int = 5
+
+    // ★削除: let categories = [...]
+
+    @State private var isTimerRunning = false
+    @State private var currentDuration: TimeInterval = 0
+    @State private var timer: Timer?
+    @State private var currentEntry: TimeEntry?
+    private var timerRunningKey: String { "timerRunning_\(task.id.uuidString)" }
+    private var timerStartTimeKey: String { "timerStartTime_\(task.id.uuidString)" }
+    private var currentEntryIDKey: String { "currentEntryID_\(task.id.uuidString)" }
     @Query private var allTimeEntries: [TimeEntry]
-
-    // タスクに紐づく時間記録を取得
     private var timeEntries: [TimeEntry] {
-        task.timeEntries?.sorted(by: { $0.startTime > $1.startTime }) ?? [] // 最新の記録が上に来るようにソート
+        task.timeEntries?.sorted(by: { $0.startTime > $1.startTime }) ?? []
     }
 
     var body: some View {
-        VStack {
-            Text(formattedCurrentDuration)
-                .font(.largeTitle)
-                .padding()
+        Form {
+            // タスク詳細編集セクション
+            Section("TaskDetails") {
+                TextField("TaskName", text: $newTaskName)
+                
+                // ★削除: カテゴリ選択ピッカー
+                // Picker("Category", selection: $newCategory) {
+                //     ForEach(categories, id: \.self) { category in
+                //         Text(category).tag(category)
+                //     }
+                // }
+                
+                TextEditor(text: $newTaskMemo)
+                    .frame(minHeight: 100)
+                    .overlay(
+                        Group {
+                            if newTaskMemo.isEmpty {
+                                Text("Memo (Optional)")
+                                    .foregroundColor(.gray)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 12)
+                            }
+                        }, alignment: .topLeading
+                    )
+            }
+            
+            Section {
+                Text(formattedCurrentDuration)
+                    .font(.largeTitle)
+                    .frame(maxWidth: .infinity)
+                    .multilineTextAlignment(.center)
+                    .padding(.vertical)
 
-            HStack {
                 Button(action: {
                     if isTimerRunning {
                         stopTimer()
@@ -38,7 +68,7 @@ struct TaskDetailView: View {
                         startTimer()
                     }
                 }) {
-                    Text(isTimerRunning ? "停止" : "開始")
+                    Text(isTimerRunning ? "Stop" : "Start")
                         .font(.title2)
                         .padding()
                         .frame(maxWidth: .infinity)
@@ -46,67 +76,84 @@ struct TaskDetailView: View {
                         .foregroundColor(.white)
                         .cornerRadius(10)
                 }
-                .padding(.horizontal)
             }
 
-            Divider()
-                .padding(.vertical)
+            Section("Satisfaction Score") {
+                Stepper(value: $newSatisfactionScore, in: 1...10) {
+                    Text("Score: \(newSatisfactionScore)")
+                }
+            }
 
-            List {
-                Section("過去の記録") {
-                    if timeEntries.isEmpty {
-                        Text("まだ時間記録がありません。")
-                            .foregroundColor(.gray)
-                    } else {
-                        ForEach(timeEntries) { entry in
-                            VStack(alignment: .leading) {
-                                Text("開始: \(entry.startTime, formatter: itemFormatter)")
-                                if let endTime = entry.endTime {
-                                    Text("終了: \(endTime, formatter: itemFormatter)")
-                                }
-                                Text("時間: \(formattedDuration(entry.duration))")
-                                if !entry.memo.isEmpty {
-                                    Text("メモ: \(entry.memo)")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
+            Section("PastRecords") {
+                if timeEntries.isEmpty {
+                    Text("NoTimeRecordedYet")
+                        .foregroundColor(.gray)
+                } else {
+                    ForEach(timeEntries) { entry in
+                        VStack(alignment: .leading) {
+                            Text("StartAtFormat \(entry.startTime, formatter: itemFormatter)")
+                            if let endTime = entry.endTime {
+                                Text("EndAtFormat \(endTime, formatter: itemFormatter)")
+                            }
+                            Text("TimeFormat \(formattedDuration(entry.duration))")
+                            if !entry.memo.isEmpty {
+                                Text("NoteFormat \(entry.memo)")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
                             }
                         }
-                        .onDelete(perform: deleteTimeEntries)
                     }
+                    .onDelete(perform: deleteTimeEntries)
                 }
             }
         }
         .navigationTitle(task.name)
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear(perform: setupTimerOnAppear) // ビューが表示されたときにタイマーの状態をセットアップ
-        .onDisappear(perform: cleanupTimerOnDisappear) // ビューが非表示になったときにタイマーをクリーンアップ
-
-        // アプリがアクティブになった際の通知を購読
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Save") {
+                    saveTaskDetails()
+                    dismiss()
+                }
+                .disabled(newTaskName.isEmpty)
+            }
+        }
+        .onAppear(perform: setupTaskDetailViewOnAppear)
+        .onDisappear(perform: cleanupTimerOnDisappear)
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-            // アプリがフォアグラウンドに戻った時にタイマーの状態を再確認
             setupTimerOnAppear()
         }
     }
 
-    // ビュー表示時のタイマーセットアップ
+    private func setupTaskDetailViewOnAppear() {
+        setupTimerOnAppear()
+        newTaskName = task.name
+        newTaskMemo = task.memo
+        // ★削除: newCategory = task.category
+        newSatisfactionScore = task.satisfactionScore ?? 5
+    }
+
+    private func saveTaskDetails() {
+        task.name = newTaskName
+        task.memo = newTaskMemo
+        // ★削除: task.category = newCategory
+        task.satisfactionScore = newSatisfactionScore
+    }
+
+    // ... タイマー関連の関数は変更なし ...
     private func setupTimerOnAppear() {
-        // UserDefaultsからタイマーの状態を復元
         let storedIsRunning = UserDefaults.standard.bool(forKey: timerRunningKey)
         if storedIsRunning, let storedStartTime = UserDefaults.standard.object(forKey: timerStartTimeKey) as? Date,
            let storedEntryIDString = UserDefaults.standard.string(forKey: currentEntryIDKey),
-           let storedEntryUUID = UUID(uuidString: storedEntryIDString), // ★修正: UUIDを直接扱う
-           // allTimeEntriesからID（UUID）でTimeEntryを検索
-           let ongoingEntry = allTimeEntries.first(where: { $0.id == storedEntryUUID }) { // ★修正: .id ==
+           let storedEntryUUID = UUID(uuidString: storedEntryIDString),
+           let ongoingEntry = allTimeEntries.first(where: { $0.id == storedEntryUUID }) {
             
-            // 復元したTimeEntryが現在のタスクに紐づくか確認
-            guard ongoingEntry.task?.id == task.id else { return } // ★修正: .id ==
+            guard ongoingEntry.task?.id == task.id else { return }
 
             currentEntry = ongoingEntry
             isTimerRunning = true
-            currentDuration = Date().timeIntervalSince(storedStartTime) // 保存された開始時刻から経過時間を計算
+            currentDuration = Date().timeIntervalSince(storedStartTime)
 
-            // タイマーがまだ動いていなければ再開
             if timer == nil {
                 timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
                     if let entry = currentEntry {
@@ -115,7 +162,6 @@ struct TaskDetailView: View {
                 }
             }
         } else {
-            // 保存された状態がない、または無効な場合はタイマーを停止状態にリセット
             isTimerRunning = false
             currentDuration = 0
             timer?.invalidate()
@@ -126,12 +172,7 @@ struct TaskDetailView: View {
         }
     }
 
-    // ビュー非表示時のタイマークリーンアップ（ここではタイマー自体は停止しない）
-    private func cleanupTimerOnDisappear() {
-        // ビューを離れるだけなのでタイマーはそのままにしておく
-        // タイマーが動作している場合、アプリがバックグラウンドに行っても継続したいので
-        // ここで invalidate はしない
-    }
+    private func cleanupTimerOnDisappear() {}
 
     private func startTimer() {
         isTimerRunning = true
@@ -144,10 +185,9 @@ struct TaskDetailView: View {
         task.timeEntries?.append(newEntry)
         currentEntry = newEntry
 
-        // タイマーの状態と開始時刻、現在のエントリのIDをUserDefaultsに保存
         UserDefaults.standard.set(true, forKey: timerRunningKey)
         UserDefaults.standard.set(newEntry.startTime, forKey: timerStartTimeKey)
-        UserDefaults.standard.set(newEntry.id.uuidString, forKey: currentEntryIDKey) // ★修正: .id.uuidString
+        UserDefaults.standard.set(newEntry.id.uuidString, forKey: currentEntryIDKey)
 
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             if let entry = currentEntry {
@@ -168,7 +208,6 @@ struct TaskDetailView: View {
             currentDuration = 0
         }
 
-        // UserDefaultsからタイマーの状態をクリア
         UserDefaults.standard.removeObject(forKey: timerRunningKey)
         UserDefaults.standard.removeObject(forKey: timerStartTimeKey)
         UserDefaults.standard.removeObject(forKey: currentEntryIDKey)
@@ -201,16 +240,28 @@ private let itemFormatter: DateFormatter = {
     return formatter
 }()
 
+// Xcodeのプレビュー用（テストデータ）
 #Preview {
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: Project.self, Task.self, TimeEntry.self, configurations: config)
+    do {
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: Project.self, Task.self, TimeEntry.self, configurations: config)
 
-    let sampleProject = Project(name: "開発", colorHex: "#007AFF")
-    let sampleTask = Task(name: "UI実装", project: sampleProject)
-    let sampleTimeEntry1 = TimeEntry(id: UUID(), startTime: Date().addingTimeInterval(-3600), endTime: Date().addingTimeInterval(-3000), duration: 600, memo: "ボタン配置")
-    let sampleTimeEntry2 = TimeEntry(id: UUID(), startTime: Date().addingTimeInterval(-7200), endTime: Date().addingTimeInterval(-6000), duration: 1200, memo: "データモデル設計")
-    sampleTask.timeEntries = [sampleTimeEntry1, sampleTimeEntry2]
+        // ★修正: ProjectにhappinessWeightを追加
+        let sampleProject = Project(name: "開発", colorHex: "#007AFF", happinessWeight: 30)
+        // ★修正: Taskにcategory引数がなくなった
+        let sampleTask = Task(name: "UI実装", memo: "新規機能追加", satisfactionScore: 8, project: sampleProject)
+        let sampleTimeEntry1 = TimeEntry(id: UUID(), startTime: Date().addingTimeInterval(-3600), endTime: Date().addingTimeInterval(-3000), duration: 600, memo: "ボタン配置")
+        let sampleTimeEntry2 = TimeEntry(id: UUID(), startTime: Date().addingTimeInterval(-7200), endTime: Date().addingTimeInterval(-6000), duration: 1200, memo: "データモデル設計")
+        sampleTask.timeEntries = [sampleTimeEntry1, sampleTimeEntry2]
 
-    return TaskDetailView(task: sampleTask)
-        .modelContainer(container)
+        container.mainContext.insert(sampleProject)
+        container.mainContext.insert(sampleTask)
+        container.mainContext.insert(sampleTimeEntry1)
+        container.mainContext.insert(sampleTimeEntry2)
+
+        return TaskDetailView(task: sampleTask)
+            .modelContainer(container)
+    } catch {
+        fatalError("Failed to create ModelContainer for preview: \(error)")
+    }
 }
