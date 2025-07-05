@@ -17,6 +17,22 @@
         }
       }
     },
+    "AboutApp_Placeholder" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About App"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アプリについて"
+          }
+        }
+      }
+    },
     "AddProject" : {
       "localizations" : {
         "en" : {
@@ -157,6 +173,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "一般"
+          }
+        }
+      }
+    },
+    "Happiness Weight: %lld%%" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライフバランス: %lld%%"
           }
         }
       }
@@ -416,22 +442,6 @@
         }
       }
     },
-    "Report" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Report"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "レポート"
-          }
-        }
-      }
-    },
     "ReportsTabTitle" : {
       "localizations" : {
         "en" : {
@@ -512,22 +522,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "スコア: %lld"
-          }
-        }
-      }
-    },
-    "Settings" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Settings"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "設定"
           }
         }
       }

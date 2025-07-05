@@ -241,15 +241,15 @@ private let itemFormatter: DateFormatter = {
 }()
 
 // Xcodeのプレビュー用（テストデータ）
+// TaskDetailView.swift の末尾にある #Preview ブロック
 #Preview {
     do {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try ModelContainer(for: Project.self, Task.self, TimeEntry.self, configurations: config)
 
-        // ★修正: ProjectにhappinessWeightを追加
-        let sampleProject = Project(name: "開発", colorHex: "#007AFF", happinessWeight: 30)
-        // ★修正: Taskにcategory引数がなくなった
-        let sampleTask = Task(name: "UI実装", memo: "新規機能追加", satisfactionScore: 8, project: sampleProject)
+        let sampleProject = Project(name: "開発", colorHex: "#007AFF")
+        // ★修正: Task の初期化に orderIndex を追加
+        let sampleTask = Task(name: "UI実装", memo: "新規機能追加", satisfactionScore: 8, orderIndex: 0, project: sampleProject)
         let sampleTimeEntry1 = TimeEntry(id: UUID(), startTime: Date().addingTimeInterval(-3600), endTime: Date().addingTimeInterval(-3000), duration: 600, memo: "ボタン配置")
         let sampleTimeEntry2 = TimeEntry(id: UUID(), startTime: Date().addingTimeInterval(-7200), endTime: Date().addingTimeInterval(-6000), duration: 1200, memo: "データモデル設計")
         sampleTask.timeEntries = [sampleTimeEntry1, sampleTimeEntry2]

@@ -1,24 +1,12 @@
-//
-//  SettingsView.swift
-//  TimeManager
-//
-//  Created by WILL on 2025/07/02.
-//
-
 import SwiftUI
 import SwiftData // SwiftDataのモデルを削除するために必要
 
 struct SettingsView: View {
-    // 週の開始曜日を保存するためのAppStorage
-    // AppStorageはUserDefaultsに値を自動で保存・読み込みます
     @AppStorage("startOfWeek") var startOfWeek: Int = 1 // 1=日曜日, 2=月曜日
 
-    // 全データリセットのアラート表示を制御するためのState
     @State private var showingResetAlert = false
 
-    // SwiftDataのコンテキストにアクセス
     @Environment(\.modelContext) private var modelContext
-    // 全てのプロジェクトを取得（データリセット時に必要となるため）
     @Query private var projects: [Project]
     
     @EnvironmentObject var productManager: ProductManager
@@ -26,76 +14,61 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("General") {
-                    Picker("StartOfWeek", selection: $startOfWeek) {
-                        Text("Sunday").tag(1)
-                        Text("Monday").tag(2)
+                Section("General") { // Localizable.xcstringsにキーを追加
+                    Picker("StartOfWeek", selection: $startOfWeek) { // Localizable.xcstringsにキーを追加
+                        Text("Sunday").tag(1) // Localizable.xcstringsにキーを追加
+                        Text("Monday").tag(2) // Localizable.xcstringsにキーを追加
                     }
                 }
 
-                Section("Data") {
-                    Button("ResetAllData") {
-                        showingResetAlert = true // アラートを表示する
+                Section("Data") { // Localizable.xcstringsにキーを追加
+                    Button("ResetAllData") { // Localizable.xcstringsにキーを追加
+                        showingResetAlert = true
                     }
                     .foregroundColor(.red)
-                    // 全データリセットの確認アラート
-                    .alert("DeleteAllDataConfirmation", isPresented: $showingResetAlert) {
-                        Button("Delete", role: .destructive) {
-                            // MARK: - 全データ削除ロジック
-                            // ここにデータを全て削除するロジックを実装します
-                            // SwiftDataの場合、各モデルインスタンスを個別に削除する必要があります
+                    .alert("DeleteAllDataConfirmation", isPresented: $showingResetAlert) { // Localizable.xcstringsにキーを追加
+                        Button("Delete", role: .destructive) { // Localizable.xcstringsにキーを追加
                             do {
-                                // TimeEntryを全て削除
                                 try modelContext.delete(model: TimeEntry.self)
-                                // Taskを全て削除
                                 try modelContext.delete(model: Task.self)
-                                // Projectを全て削除
                                 try modelContext.delete(model: Project.self)
 
-                                // または、projects @Queryで取得したものをループで削除する方法
-                                // for project in projects {
-                                //    modelContext.delete(project)
-                                // }
-                                // `delete(model:)` を使う方がシンプルです
-
-                                // 削除が成功したことをユーザーに知らせるなどのフィードバック
                                 print("全てのデータが削除されました。")
                             } catch {
                                 print("データ削除中にエラーが発生しました: \(error)")
-                                // エラーをユーザーに通知するなどの処理
                             }
                         }
-                        Button("Cancel", role: .cancel) { }
+                        Button("Cancel", role: .cancel) { } // Localizable.xcstringsにキーを追加
                     } message: {
-                        Text("ThisActionCannotBeUndone")
+                        Text("ThisActionCannotBeUndone") // Localizable.xcstringsにキーを追加
                     }
                 }
-                Section("AboutApp") {
+                Section("AboutApp") { // Localizable.xcstringsにキーを追加
                     if productManager.isProVersionUnlocked {
-                        Text("ProVersionEnabled")
+                        Text("ProVersionEnabled") // Localizable.xcstringsにキーを追加
                             .foregroundColor(.green)
                     } else {
-                        Button("UpgradeToProVersionV2") {
-                            productManager.purchaseProVersion() // 未実装の購入処理を呼び出す
+                         Button("UpgradeToProVersionV2") { // Localizable.xcstringsにキーを追加
+                            productManager.purchaseProVersion()
                         }
                     }
-                    Button("RestorePurchases") {
-                        productManager.restorePurchases() // 未実装の復元処理を呼び出す
+                    Button("RestorePurchases") { // Localizable.xcstringsにキーを追加
+                        productManager.restorePurchases()
                     }
+                    Text("AboutApp_Placeholder") // 仮のテキスト。ローカライズキーに置き換える
                 }
             }
-            .navigationTitle("Settings")
+            .navigationTitle("SettingsTabTitle") // Localizable.xcstringsにキーを追加
         }
     }
 }
 
 // SettingsView.swift の一番下にある #Preview の箇所
 #Preview {
-    // プレビュー用にインメモリのModelContainerを設定
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: Project.self, Task.self, TimeEntry.self, configurations: config)
 
     SettingsView()
-        .modelContainer(container) // プレビューにもmodelContainerが必要
-        .environmentObject(ProductManager()) // ★ここにも`.environmentObject`を追加
+        .modelContainer(container)
+        .environmentObject(ProductManager())
 }

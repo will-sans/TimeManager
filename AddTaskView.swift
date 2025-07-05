@@ -9,20 +9,11 @@ struct AddTaskView: View {
     @Bindable var project: Project // 所属するプロジェクト
 
     @State private var taskName: String = ""
-    // ★削除: @State private var selectedCategory: String = "General"
-    // ★削除: let categories = [...]
 
     var body: some View {
         NavigationView {
             Form {
                 TextField("TaskName", text: $taskName)
-
-                // ★削除: カテゴリ選択ピッカー
-                // Picker("Category", selection: $selectedCategory) {
-                //     ForEach(categories, id: \.self) { category in
-                //         Text(category).tag(category)
-                //     }
-                // }
             }
             .navigationTitle("NewTask")
             .navigationBarTitleDisplayMode(.inline)
@@ -43,14 +34,19 @@ struct AddTaskView: View {
     }
 
     private func addTask() {
-        // ★修正: category引数を削除
+        // 新しいタスクのorderIndexを設定
+        // 現在のタスクの最大orderIndex + 1 を新しいorderIndexとする
+        // もしタスクが一つもなければ0とする
+        let newOrderIndex = (project.tasks?.max(by: { $0.orderIndex < $1.orderIndex })?.orderIndex ?? -1) + 1
+        
         let newTask = Task(name: taskName,
                            isCompleted: false,
                            memo: "",
-                           satisfactionScore: nil, // OptionalなのでnilでOK
+                           satisfactionScore: nil,
+                           orderIndex: newOrderIndex, // ★修正: orderIndexを設定
                            project: project)
         modelContext.insert(newTask)
-        project.tasks?.append(newTask)
+        // project.tasks?.append(newTask) // @Relationship で自動的に追加されるため、明示的な追加は不要
         dismiss()
     }
 }
@@ -61,7 +57,6 @@ struct AddTaskView: View {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try ModelContainer(for: Project.self, Task.self, TimeEntry.self, configurations: config)
         
-        // ★修正: ProjectにhappinessWeightを追加
         let sampleProject = Project(name: "Sample Project", colorHex: "#FFC0CB", isArchived: false, happinessWeight: 20)
         container.mainContext.insert(sampleProject)
 
