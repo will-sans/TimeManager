@@ -1,7 +1,7 @@
 import Foundation
 import SwiftData
 
-// プロジェクトモデル（変更なし）
+// プロジェクトモデル
 @Model
 final class Project {
     var id: UUID
@@ -9,21 +9,22 @@ final class Project {
     var colorHex: String
     var isArchived: Bool
     var orderIndex: Int
-    var happinessWeight: Int
+    var lifeBalance: Int // ★名称変更: happinessWeight -> lifeBalance
+    // プロジェクトがライフバランス（カテゴリ）の役割を担う
 
     @Relationship(deleteRule: .cascade) var tasks: [Task]?
 
-    init(id: UUID = UUID(), name: String, colorHex: String, isArchived: Bool = false, orderIndex: Int = 0, happinessWeight: Int = 0) {
+    init(id: UUID = UUID(), name: String, colorHex: String, isArchived: Bool = false, orderIndex: Int = 0, lifeBalance: Int = 0) { // ★initも修正
         self.id = id
         self.name = name
         self.colorHex = colorHex
         self.isArchived = isArchived
         self.orderIndex = orderIndex
-        self.happinessWeight = happinessWeight
+        self.lifeBalance = lifeBalance // 初期化
     }
 }
 
-// タスクモデル
+// タスクモデル（変更なし）
 @Model
 final class Task {
     var id: UUID
@@ -31,18 +32,18 @@ final class Task {
     var isCompleted: Bool
     var memo: String
     var satisfactionScore: Int?
-    var orderIndex: Int // ★追加: タスクの並び順を保持するプロパティ
+    var orderIndex: Int // タスクの並び順を保持するプロパティ
     
     @Relationship var project: Project?
     @Relationship(deleteRule: .cascade) var timeEntries: [TimeEntry]?
 
-    init(id: UUID = UUID(), name: String, isCompleted: Bool = false, memo: String = "", satisfactionScore: Int? = nil, orderIndex: Int = 0, project: Project? = nil) { // ★initも修正
+    init(id: UUID = UUID(), name: String, isCompleted: Bool = false, memo: String = "", satisfactionScore: Int? = nil, orderIndex: Int = 0, project: Project? = nil) {
         self.id = id
         self.name = name
         self.isCompleted = isCompleted
         self.memo = memo
         self.satisfactionScore = satisfactionScore
-        self.orderIndex = orderIndex // 初期化
+        self.orderIndex = orderIndex
         self.project = project
     }
 }

@@ -15,7 +15,7 @@ struct TimeManagerApp: App {
             if projectCount == 0 {
                 print("Initial data insertion: Starting.")
 
-                let selfGrowthProject = Project(name: "自己成長", colorHex: "#007AFF", isArchived: false, orderIndex: 0, happinessWeight: 25)
+                let selfGrowthProject = Project(name: "自己成長", colorHex: "#007AFF", isArchived: false, orderIndex: 0, lifeBalance: 25)
                 container.mainContext.insert(selfGrowthProject)
                 let readingTask = Task(name: "読書", memo: "", satisfactionScore: nil, project: selfGrowthProject)
                 let learningTask = Task(name: "学習", memo: "", satisfactionScore: nil, project: selfGrowthProject)
@@ -24,7 +24,7 @@ struct TimeManagerApp: App {
                 container.mainContext.insert(learningTask)
                 container.mainContext.insert(introspectionTask)
 
-                let healthProject = Project(name: "健康", colorHex: "#28A745", isArchived: false, orderIndex: 1, happinessWeight: 20)
+                let healthProject = Project(name: "健康", colorHex: "#28A745", isArchived: false, orderIndex: 1, lifeBalance: 20)
                 container.mainContext.insert(healthProject)
                 let sleepTask = Task(name: "睡眠", memo: "", satisfactionScore: nil, project: healthProject)
                 let exerciseTask = Task(name: "運動", memo: "", satisfactionScore: nil, project: healthProject)
@@ -35,7 +35,7 @@ struct TimeManagerApp: App {
                 container.mainContext.insert(nutritionTask)
                 container.mainContext.insert(meditationTask)
 
-                let relationshipsProject = Project(name: "人間関係", colorHex: "#FFC107", isArchived: false, orderIndex: 2, happinessWeight: 25)
+                let relationshipsProject = Project(name: "人間関係", colorHex: "#FFC107", isArchived: false, orderIndex: 2, lifeBalance: 25)
                 container.mainContext.insert(relationshipsProject)
                 let familyTimeTask = Task(name: "家族の時間", memo: "", satisfactionScore: nil, project: relationshipsProject)
                 let houseworkTask = Task(name: "家事全般", memo: "", satisfactionScore: nil, project: relationshipsProject)
@@ -44,7 +44,7 @@ struct TimeManagerApp: App {
                 container.mainContext.insert(houseworkTask)
                 container.mainContext.insert(friendsTask)
 
-                let workProject = Project(name: "仕事・創造", colorHex: "#DC3545", isArchived: false, orderIndex: 3, happinessWeight: 20)
+                let workProject = Project(name: "仕事・創造", colorHex: "#DC3545", isArchived: false, orderIndex: 3, lifeBalance: 20)
                 container.mainContext.insert(workProject)
                 let dailyWorkTask = Task(name: "日常", memo: "", satisfactionScore: nil, project: workProject)
                 let meetingTask = Task(name: "会議", memo: "", satisfactionScore: nil, project: workProject)
@@ -55,7 +55,7 @@ struct TimeManagerApp: App {
                 container.mainContext.insert(developmentTask)
                 container.mainContext.insert(documentationTask)
 
-                let hobbyProject = Project(name: "遊び・趣味", colorHex: "#6F42C1", isArchived: false, orderIndex: 4, happinessWeight: 10)
+                let hobbyProject = Project(name: "遊び・趣味", colorHex: "#6F42C1", isArchived: false, orderIndex: 4, lifeBalance: 10)
                 container.mainContext.insert(hobbyProject)
                 let musicTask = Task(name: "音楽", memo: "", satisfactionScore: nil, project: hobbyProject)
                 let travelTask = Task(name: "旅行", memo: "", satisfactionScore: nil, project: hobbyProject)

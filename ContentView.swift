@@ -7,9 +7,27 @@ struct ContentView: View {
 
     @State private var showingAddProjectSheet = false
 
+    // 全プロジェクトのライフバランス合計
+    private var totalLifeBalance: Int {
+        projects.reduce(0) { $0 + $1.lifeBalance }
+    }
+
     var body: some View {
         NavigationStack {
             List {
+                // ライフバランス合計表示
+                Section {
+                    HStack {
+                        Text("Total Life Balance:") // Localizable.xcstrings にキーを追加
+                        Spacer()
+                        Text("\(totalLifeBalance)%")
+                            .foregroundColor(totalLifeBalance == 100 ? .green : .red) // 100%なら緑
+                    }
+                    Text("Adjust LifeBalance to 100%.") // Localizable.xcstrings にキーを追加
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+
                 if projects.isEmpty {
                     ContentUnavailableView("NoProjects", systemImage: "folder")
                         .padding()
@@ -23,6 +41,25 @@ struct ContentView: View {
                                     .fill(Color(hex: project.colorHex) ?? .blue)
                                     .frame(width: 10, height: 10)
                                 Text(project.name)
+                                Spacer()
+                                // LifeBalance 調整用 Stepper
+                                Stepper(value: Binding(
+                                    get: { project.lifeBalance },
+                                    set: { newValue in
+                                        // 合計が100%を超えないように制御
+                                        // またはユーザーに任せるか、他のプロジェクトを調整するか
+                                        // 今回は単にSteppperの範囲で制御
+                                        if totalLifeBalance - project.lifeBalance + newValue <= 100 {
+                                            project.lifeBalance = newValue
+                                        } else {
+                                            // 100%を超えそうになったら最大値を100%に制限
+                                            project.lifeBalance = 100 - (totalLifeBalance - project.lifeBalance)
+                                        }
+                                    }
+                                ), in: 0...100) { // 0%から100%の範囲
+                                    Text("\(project.lifeBalance)%")
+                                }
+                                .fixedSize() // Stepperが横幅を広げすぎないように
                             }
                         }
                     }
@@ -54,6 +91,8 @@ struct ContentView: View {
             for index in offsets {
                 modelContext.delete(projects[index])
             }
+            // 削除後に orderIndex を再割り当て
+            updateProjectOrderIndices()
         }
     }
 
@@ -64,9 +103,20 @@ struct ContentView: View {
         for index in updatedProjects.indices {
             updatedProjects[index].orderIndex = index
         }
+        // SwiftDataは変更を自動的に検知し保存します
+    }
+
+    // 削除後に orderIndex を再割り当てするためのヘルパー
+    private func updateProjectOrderIndices() {
+        var currentProjects = projects // @Queryの結果は自動更新されるので、念のためコピー
+        currentProjects.sort(by: { $0.orderIndex < $1.orderIndex }) // 現在の順序でソート
+        for index in currentProjects.indices {
+            currentProjects[index].orderIndex = index // 新しいorderIndexを割り当て
+        }
+        // project.tasks は @Relationship なので、project.tasks = currentProjects で更新される
+        // Query results in SwiftUI are @State var internally, so assigning to them directly can trigger update.
     }
 }
-
 // AddProjectView のコードは変更なし（前回の正しいコードを使用）
 struct AddProjectView: View {
     @Environment(\.modelContext) private var modelContext

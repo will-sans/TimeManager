@@ -57,7 +57,7 @@ struct AddTaskView: View {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try ModelContainer(for: Project.self, Task.self, TimeEntry.self, configurations: config)
         
-        let sampleProject = Project(name: "Sample Project", colorHex: "#FFC0CB", isArchived: false, happinessWeight: 20)
+        let sampleProject = Project(name: "Sample Project", colorHex: "#FFC0CB", isArchived: false, lifeBalance: 20)
         container.mainContext.insert(sampleProject)
 
         return AddTaskView(project: sampleProject)

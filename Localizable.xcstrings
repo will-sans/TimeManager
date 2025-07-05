@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%lld%%" : {
+
+    },
     "AboutApp" : {
       "localizations" : {
         "en" : {
@@ -61,6 +64,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "タスクを追加"
+          }
+        }
+      }
+    },
+    "Adjust LifeBalance to 100%." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライフバランス合計を100%にしましょう"
           }
         }
       }
@@ -173,16 +186,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "一般"
-          }
-        }
-      }
-    },
-    "Happiness Weight: %lld%%" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ライフバランス: %lld%%"
           }
         }
       }
@@ -692,6 +695,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "時間: %@"
+          }
+        }
+      }
+    },
+    "Total Life Balance:" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライフバランス合計"
           }
         }
       }

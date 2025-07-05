@@ -12,9 +12,7 @@ struct ProjectDetailView: View {
     @State private var newProjectName: String = ""
     @State private var isEditingProjectName: Bool = false
 
-    // プロジェクトに紐づくタスクを取得し、orderIndexでソート
-    // @Query を使用せず、project.tasks をソートして使用
-    private var sortedTasks: [Task] { // ★修正: プロパティ名を sortedTasks に変更
+    private var sortedTasks: [Task] {
         project.tasks?.sorted(by: { $0.orderIndex < $1.orderIndex }) ?? []
     }
 
@@ -48,18 +46,19 @@ struct ProjectDetailView: View {
                         set: { project.colorHex = $0.toHex() ?? "#FF0000" }
                     ))
 
-                    Stepper(value: $project.happinessWeight, in: 0...100) {
-                        Text("Happiness Weight: \(project.happinessWeight)%")
-                    }
+                    // ★削除: Happiness Weight Stepper
+                    // Stepper(value: $project.happinessWeight, in: 0...100) {
+                    //     Text("Happiness Weight: \(project.happinessWeight)%")
+                    // }
                 }
 
                 Section("Tasks") {
-                    if sortedTasks.isEmpty { // ★修正: tasks -> sortedTasks
+                    if sortedTasks.isEmpty {
                         ContentUnavailableView("NoTasks", systemImage: "checklist")
                             .font(.subheadline)
                             .foregroundColor(.gray)
                     } else {
-                        ForEach(sortedTasks) { task in // ★修正: tasks -> sortedTasks
+                        ForEach(sortedTasks) { task in
                             NavigationLink(destination: TaskDetailView(task: task)) {
                                 HStack {
                                     Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
@@ -76,7 +75,6 @@ struct ProjectDetailView: View {
                                 }
                             }
                         }
-                        // ★追加: タスクの並び替え機能
                         .onMove(perform: moveTasks)
                         .onDelete(perform: deleteTasks)
                     }
@@ -86,7 +84,7 @@ struct ProjectDetailView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton() // ★追加: EditButton で並び替えモードを有効に
+                    EditButton()
                 }
                 ToolbarItem {
                     Button(action: {
@@ -109,42 +107,29 @@ struct ProjectDetailView: View {
 
     private func deleteTasks(offsets: IndexSet) {
         withAnimation {
-            // 削除対象のタスクのUUIDを取得してmodelContextから削除
-            let tasksToDelete = offsets.map { self.sortedTasks[$0] } // ★修正: tasks -> sortedTasks
+            let tasksToDelete = offsets.map { self.sortedTasks[$0] }
             for task in tasksToDelete {
                 modelContext.delete(task)
             }
-            // 削除後に orderIndex を再割り当て
             updateTaskOrderIndices()
         }
     }
 
-    // ★追加: タスクの並び替え関数
     private func moveTasks(from source: IndexSet, to destination: Int) {
-        guard var currentTasks = project.tasks else { return } // project.tasks は元の順序（SwiftDataが保持している順序）
-
-        // まず、現在の並び替え順（orderIndex）でソートされた配列を作成
+        guard var currentTasks = project.tasks else { return }
         currentTasks.sort(by: { $0.orderIndex < $1.orderIndex })
-        
-        // 配列の要素を移動
         currentTasks.move(fromOffsets: source, toOffset: destination)
-        
-        // 移動後の新しい順序に基づいて orderIndex を再割り当て
         for index in currentTasks.indices {
             currentTasks[index].orderIndex = index
         }
-        
-        // project.tasks を更新してSwiftDataに反映
-        // SwiftDataはリレーションシップの変更を自動的に検知し、永続化します
         project.tasks = currentTasks
     }
     
-    // 削除後に orderIndex を再割り当てするためのヘルパー関数
     private func updateTaskOrderIndices() {
         guard var currentTasks = project.tasks else { return }
-        currentTasks.sort(by: { $0.orderIndex < $1.orderIndex }) // 現在の順序でソート
+        currentTasks.sort(by: { $0.orderIndex < $1.orderIndex })
         for index in currentTasks.indices {
-            currentTasks[index].orderIndex = index // 新しいorderIndexを割り当て
+            currentTasks[index].orderIndex = index
         }
         project.tasks = currentTasks
     }

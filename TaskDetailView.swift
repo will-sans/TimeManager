@@ -247,9 +247,9 @@ private let itemFormatter: DateFormatter = {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try ModelContainer(for: Project.self, Task.self, TimeEntry.self, configurations: config)
 
-        let sampleProject = Project(name: "開発", colorHex: "#007AFF")
-        // ★修正: Task の初期化に orderIndex を追加
-        let sampleTask = Task(name: "UI実装", memo: "新規機能追加", satisfactionScore: 8, orderIndex: 0, project: sampleProject)
+        // ★修正: lifeBalance に引数名を変更
+        let sampleProject = Project(name: "開発", colorHex: "#007AFF", lifeBalance: 30) // この行に lifeBalance を追加
+        let sampleTask = Task(name: "UI実装", memo: "新規機能追加", satisfactionScore: 8, orderIndex: 0, project: sampleProject) // Task の orderIndex も確認
         let sampleTimeEntry1 = TimeEntry(id: UUID(), startTime: Date().addingTimeInterval(-3600), endTime: Date().addingTimeInterval(-3000), duration: 600, memo: "ボタン配置")
         let sampleTimeEntry2 = TimeEntry(id: UUID(), startTime: Date().addingTimeInterval(-7200), endTime: Date().addingTimeInterval(-6000), duration: 1200, memo: "データモデル設計")
         sampleTask.timeEntries = [sampleTimeEntry1, sampleTimeEntry2]
