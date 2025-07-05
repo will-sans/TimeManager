@@ -70,6 +70,12 @@
     },
     "Adjust LifeBalance to 100%." : {
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adjust LifeBalance to 100%."
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -79,6 +85,7 @@
       }
     },
     "BreakdownByProject" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -158,6 +165,9 @@
         }
       }
     },
+    "Duration" : {
+
+    },
     "EndAtFormat %@" : {
       "localizations" : {
         "en" : {
@@ -173,6 +183,9 @@
           }
         }
       }
+    },
+    "Future Reports" : {
+
     },
     "General" : {
       "localizations" : {
@@ -192,6 +205,12 @@
     },
     "Memo (Optional)" : {
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Memo (Optional)"
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -217,6 +236,7 @@
       }
     },
     "MonthlyReportLater" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -231,6 +251,9 @@
           }
         }
       }
+    },
+    "More detailed reports and insights will be available here." : {
+
     },
     "NewProject" : {
       "localizations" : {
@@ -264,6 +287,9 @@
         }
       }
     },
+    "NoDataForPeriod" : {
+
+    },
     "NoProjects" : {
       "localizations" : {
         "en" : {
@@ -281,6 +307,7 @@
       }
     },
     "NoRecordsForThisDay" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -346,9 +373,15 @@
     },
     "PastRecords" : {
       "localizations" : {
-        "ja" : {
+        "en" : {
           "stringUnit" : {
             "state" : "translated",
+            "value" : "Past Records"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "needs_review",
             "value" : "履歴"
           }
         }
@@ -370,6 +403,9 @@
         }
       }
     },
+    "Project" : {
+
+    },
     "ProjectColor" : {
       "localizations" : {
         "en" : {
@@ -388,9 +424,15 @@
     },
     "ProjectDetails" : {
       "localizations" : {
-        "ja" : {
+        "en" : {
           "stringUnit" : {
             "state" : "translated",
+            "value" : "Project Details"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "needs_review",
             "value" : "プロジェクト詳細"
           }
         }
@@ -495,6 +537,12 @@
     },
     "Satisfaction Score" : {
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Satisfaction Score"
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -521,6 +569,12 @@
     },
     "Score: %lld" : {
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Score: %lld"
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -659,6 +713,12 @@
     },
     "Tasks" : {
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tasks"
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -683,6 +743,9 @@
         }
       }
     },
+    "Time Allocation" : {
+
+    },
     "TimeFormat %@" : {
       "localizations" : {
         "en" : {
@@ -701,6 +764,12 @@
     },
     "Total Life Balance:" : {
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Total Life Balance:"
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -710,6 +779,7 @@
       }
     },
     "TotalTodayFormat %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -742,6 +812,7 @@
       }
     },
     "WeeklyReportLater" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
