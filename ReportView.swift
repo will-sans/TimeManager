@@ -1,39 +1,55 @@
 import SwiftUI
 import SwiftData
-import Charts // ★追加: Chartsフレームワークをインポート
+import Charts
 
 struct ReportView: View {
     @Environment(\.modelContext) private var modelContext
 
-    // TimeEntryを全て取得（後で期間でフィルタリング）
     @Query private var timeEntries: [TimeEntry]
-    @Query private var projects: [Project] // プロジェクト情報も取得
+    @Query private var projects: [Project]
 
-    @State private var selectedPeriod: ReportPeriod = .week // ★追加: 期間選択の状態
-    @State private var selectedDate: Date = Date() // ★追加: 選択された日付（週や月の基準日）
+    @AppStorage("startOfWeek") private var startOfWeek: Int = 1 // 1=Sunday, 2=Monday
+    @State private var selectedPeriod: ReportPeriod = .week
+    @State private var selectedDate: Date = Date()
+    @State private var isNavigating: Bool = false // Prevent double taps
 
     enum ReportPeriod: String, CaseIterable, Identifiable {
-        case week = "Week" // Localizable.xcstrings にキーを追加
-        case month = "Month" // Localizable.xcstrings にキーを追加
+        case day = "Day"
+        case week = "Week"
+        case month = "Month"
         var id: String { self.rawValue }
     }
 
-    // 選択された期間と日付に基づいてフィルタリングされた時間エントリ
-    private var filteredTimeEntries: [TimeEntry] {
-        let calendar = Calendar.current
-        return timeEntries.filter { entry in
-            guard let endTime = entry.endTime else { return false } // 終了していないエントリは含めない
-
-            switch selectedPeriod {
-            case .week:
-                return calendar.isDate(endTime, equalTo: selectedDate, toGranularity: .weekOfYear)
-            case .month:
-                return calendar.isDate(endTime, equalTo: selectedDate, toGranularity: .month)
-            }
-        }
+    private var calendar: Calendar {
+        var calendar = Calendar.current
+        calendar.firstWeekday = startOfWeek
+        calendar.timeZone = TimeZone(identifier: "Asia/Tokyo")! // Use JST
+        return calendar
     }
 
-    // プロジェクトごとの時間集計
+    private var filteredTimeEntries: [TimeEntry] {
+        let filtered = timeEntries.filter { entry in
+            guard let endTime = entry.endTime else {
+                print("Skipping entry with nil endTime: \(entry.id)")
+                return false
+            }
+
+            let isMatch: Bool
+            switch selectedPeriod {
+            case .day:
+                isMatch = calendar.isDate(endTime, inSameDayAs: selectedDate)
+            case .week:
+                isMatch = calendar.isDate(endTime, equalTo: selectedDate, toGranularity: .weekOfYear)
+            case .month:
+                isMatch = calendar.isDate(endTime, equalTo: selectedDate, toGranularity: .month)
+            }
+            print("Filtering entry: id=\(entry.id), endTime=\(endTime), selectedDate=\(selectedDate), period=\(selectedPeriod.rawValue), match=\(isMatch)")
+            return isMatch
+        }
+        print("Filtered \(filtered.count) entries for period \(selectedPeriod.rawValue) on \(selectedDate)")
+        return filtered
+    }
+
     private var projectTimeData: [ProjectTime] {
         var projectDurations: [UUID: TimeInterval] = [:]
         for entry in filteredTimeEntries {
@@ -50,10 +66,9 @@ struct ReportView: View {
                 return ProjectTime(project: project, duration: duration, percentage: percentage)
             }
             return nil
-        }.sorted { $0.duration > $1.duration } // 時間の長い順にソート
+        }.sorted { $0.duration > $1.duration }
     }
 
-    // グラフ表示用のデータ構造
     struct ProjectTime: Identifiable {
         let id = UUID()
         let project: Project
@@ -64,7 +79,6 @@ struct ReportView: View {
     var body: some View {
         NavigationStack {
             Form {
-                // 期間選択ピッカー
                 Picker("Period", selection: $selectedPeriod) {
                     ForEach(ReportPeriod.allCases) { period in
                         Text(period.rawValue).tag(period)
@@ -72,58 +86,74 @@ struct ReportView: View {
                 }
                 .pickerStyle(.segmented)
                 .onChange(of: selectedPeriod) {
-                    // 期間が変更されたら日付を今日にリセット
                     selectedDate = Date()
+                    print("Period changed to \(selectedPeriod.rawValue), reset selectedDate to \(selectedDate)")
                 }
-                // 日付選択（週/月移動）
+
+                // 修正後の日付ナビゲーション部分
                 HStack {
                     Button(action: {
+                        print("＜ボタン押下")
                         changeDate(by: -1)
                     }) {
                         Image(systemName: "chevron.left")
+                            .frame(width: 44, height: 44)
                     }
-                    Spacer()
+                    .buttonStyle(PlainButtonStyle())
+                    .contentShape(Rectangle())
+                    .disabled(isNavigating)
+
+                    Spacer(minLength: 20)
+
                     Text(dateRangeString())
                         .font(.headline)
-                    Spacer()
+
+                    Spacer(minLength: 20)
+
                     Button(action: {
+                        print("＞ボタン押下")
                         changeDate(by: 1)
                     }) {
                         Image(systemName: "chevron.right")
+                            .frame(width: 44, height: 44)
                     }
+                    .buttonStyle(PlainButtonStyle())
+                    .contentShape(Rectangle())
+                    .disabled(isNavigating)
                 }
+                .padding(.vertical, 5)
 
-                Section("Time Allocation") { // Localizable.xcstrings にキーを追加
+                Section("Time Allocation") {
                     if projectTimeData.isEmpty {
-                        ContentUnavailableView("NoDataForPeriod", systemImage: "chart.pie") // Localizable.xcstrings にキーを追加
+                        ContentUnavailableView("NoDataForPeriod", systemImage: "chart.pie")
                             .font(.subheadline)
                             .foregroundColor(.gray)
                     } else {
-                        // 円グラフの表示
                         Chart {
                             ForEach(projectTimeData) { data in
                                 SectorMark(
                                     angle: .value("Duration", data.duration),
-                                    innerRadius: 60, // ドーナツグラフにする
-                                    outerRadius: 100,
+                                    innerRadius: .ratio(0.6),
+                                    outerRadius: .ratio(1.0),
                                     angularInset: 1.0
                                 )
                                 .foregroundStyle(by: .value("Project", data.project.name))
                                 .annotation(position: .overlay) {
-                                    Text(String(format: "%.1f%%", data.percentage))
-                                        .font(.caption)
-                                        .foregroundStyle(.white)
+                                    if data.percentage >= 5 {
+                                        Text(String(format: "%.1f%%", min(data.percentage, 100.0)))
+                                            .font(.caption)
+                                            .foregroundStyle(.white)
+                                    }
                                 }
                             }
                         }
-                        .frame(height: 250)
+                        .frame(height: 200)
                         .chartForegroundStyleScale(
                             domain: projectTimeData.map { $0.project.name },
                             range: projectTimeData.map { Color(hex: $0.project.colorHex) ?? .gray }
                         )
                         .padding(.vertical)
 
-                        // プロジェクトごとの時間と割合のリスト
                         ForEach(projectTimeData) { data in
                             HStack {
                                 Circle()
@@ -140,39 +170,49 @@ struct ReportView: View {
                     }
                 }
 
-                // ここに今後のレポート機能を追加
-                Section("Future Reports") { // Localizable.xcstrings にキーを追加
-                    Text("More detailed reports and insights will be available here.") // Localizable.xcstrings にキーを追加
+                Section("Future Reports") {
+                    Text("More detailed reports and insights will be available here.")
                         .foregroundColor(.gray)
                 }
             }
-            .navigationTitle("ReportsTabTitle") // Localizable.xcstrings にキーを追加
+            .navigationTitle("ReportsTabTitle")
         }
     }
 
-    // MARK: - Helper Functions
-
     private func changeDate(by amount: Int) {
-        let calendar = Calendar.current
+        guard !isNavigating else { return }
+        isNavigating = true
+
+        // 連打防止のため遅延でフラグをリセット
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            isNavigating = false
+        }
+
+        let newDate: Date?
         switch selectedPeriod {
+        case .day:
+            newDate = calendar.date(byAdding: .day, value: amount, to: selectedDate)
         case .week:
-            if let newDate = calendar.date(byAdding: .weekOfYear, value: amount, to: selectedDate) {
-                selectedDate = newDate
-            }
+            newDate = calendar.date(byAdding: .weekOfYear, value: amount, to: selectedDate)
         case .month:
-            if let newDate = calendar.date(byAdding: .month, value: amount, to: selectedDate) {
-                selectedDate = newDate
-            }
+            newDate = calendar.date(byAdding: .month, value: amount, to: selectedDate)
+        }
+
+        if let newDate {
+            selectedDate = newDate
+            print("Changed date by \(amount) for \(selectedPeriod.rawValue): new selectedDate=\(selectedDate)")
         }
     }
 
     private func dateRangeString() -> String {
-        let calendar = Calendar.current
         let dateFormatter = DateFormatter()
-
+        dateFormatter.timeZone = TimeZone(identifier: "Asia/Tokyo") // Use JST
+        
         switch selectedPeriod {
+        case .day:
+            dateFormatter.dateFormat = "yyyy/MM/dd"
+            return dateFormatter.string(from: selectedDate)
         case .week:
-            // 週の開始日と終了日を計算
             guard let weekStartDate = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: selectedDate)),
                   let weekEndDate = calendar.date(byAdding: .day, value: 6, to: weekStartDate) else {
                 return "Invalid Week"
@@ -180,7 +220,6 @@ struct ReportView: View {
             dateFormatter.dateFormat = "yyyy/MM/dd"
             return "\(dateFormatter.string(from: weekStartDate)) - \(dateFormatter.string(from: weekEndDate))"
         case .month:
-            // 月の表示
             dateFormatter.dateFormat = "yyyy年MM月"
             return dateFormatter.string(from: selectedDate)
         }
@@ -204,7 +243,6 @@ struct ReportView: View {
 // MARK: - Preview
 
 #Preview {
-    // Helper function to create and populate the ModelContainer
     @MainActor
     func createPreviewContainer() throws -> ModelContainer {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
@@ -228,31 +266,63 @@ struct ReportView: View {
         container.mainContext.insert(task2_1)
         container.mainContext.insert(task3_1)
 
-        // Current week’s data
+        // Use JST timezone for consistency
+        var previewCalendar = Calendar.current
+        previewCalendar.timeZone = TimeZone(identifier: "Asia/Tokyo")!
+        previewCalendar.firstWeekday = 1 // Default to Sunday for preview
         let now = Date()
-        let calendar = Calendar.current
-        let startOfWeek = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now))!
+        let startOfDay = previewCalendar.startOfDay(for: now)
 
-        let timeEntry1 = TimeEntry(startTime: startOfWeek.addingTimeInterval(3600 * 24 * 0 + 3600 * 9), endTime: startOfWeek.addingTimeInterval(3600 * 24 * 0 + 3600 * 10), duration: 3600, task: task1_1) // 月曜日 1時間
-        let timeEntry2 = TimeEntry(startTime: startOfWeek.addingTimeInterval(3600 * 24 * 1 + 3600 * 10), endTime: startOfWeek.addingTimeInterval(3600 * 24 * 1 + 3600 * 12), duration: 7200, task: task2_1) // 火曜日 2時間
-        let timeEntry3 = TimeEntry(startTime: startOfWeek.addingTimeInterval(3600 * 24 * 2 + 3600 * 20), endTime: startOfWeek.addingTimeInterval(3600 * 24 * 2 + 3600 * 21), duration: 3600, task: task3_1) // 水曜日 1時間
-        let timeEntry4 = TimeEntry(startTime: startOfWeek.addingTimeInterval(3600 * 24 * 3 + 3600 * 14), endTime: startOfWeek.addingTimeInterval(3600 * 24 * 3 + 3600 * 15 + 1800), duration: 5400, task: task1_1) // 木曜日 1.5時間
-        let timeEntry5 = TimeEntry(startTime: startOfWeek.addingTimeInterval(3600 * 24 * 4 + 3600 * 9), endTime: startOfWeek.addingTimeInterval(3600 * 24 * 4 + 3600 * 13), duration: 14400, task: task2_1) // 金曜日 4時間
+        // Previous day's data
+        let previousDay = previewCalendar.date(byAdding: .day, value: -1, to: startOfDay)!
 
-        // Last month’s data
-        let lastMonth = calendar.date(byAdding: .month, value: -1, to: now)!
-        let startOfLastMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: lastMonth))!
+        // Next day's data
+        let nextDay = previewCalendar.date(byAdding: .day, value: 1, to: startOfDay)!
 
-        let timeEntry6 = TimeEntry(startTime: startOfLastMonth.addingTimeInterval(3600 * 24 * 5 + 3600 * 9), endTime: startOfLastMonth.addingTimeInterval(3600 * 24 * 5 + 3600 * 10), duration: 3600, task: task1_1) // 先月 1時間
-        let timeEntry7 = TimeEntry(startTime: startOfLastMonth.addingTimeInterval(3600 * 24 * 10 + 3600 * 10), endTime: startOfLastMonth.addingTimeInterval(3600 * 24 * 10 + 3600 * 12), duration: 7200, task: task2_1) // 先月 2時間
+        // Current week's data
+        let startOfWeek = previewCalendar.date(from: previewCalendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now))!
 
-        container.mainContext.insert(timeEntry1)
-        container.mainContext.insert(timeEntry2)
-        container.mainContext.insert(timeEntry3)
-        container.mainContext.insert(timeEntry4)
-        container.mainContext.insert(timeEntry5)
-        container.mainContext.insert(timeEntry6)
-        container.mainContext.insert(timeEntry7)
+        // Previous week's data
+        let previousWeek = previewCalendar.date(byAdding: .weekOfYear, value: -1, to: startOfWeek)!
+
+        // Next week's data
+        let nextWeek = previewCalendar.date(byAdding: .weekOfYear, value: 1, to: startOfWeek)!
+
+        // Current month's data
+        let startOfMonth = previewCalendar.date(from: previewCalendar.dateComponents([.year, .month], from: now))!
+
+        // Previous month's data
+        let previousMonth = previewCalendar.date(byAdding: .month, value: -1, to: startOfMonth)!
+
+        // Next month's data
+        let nextMonth = previewCalendar.date(byAdding: .month, value: 1, to: startOfMonth)!
+
+        // Time entries for various periods
+        let timeEntries = [
+            // Current day
+            TimeEntry(startTime: startOfDay.addingTimeInterval(3600 * 9), endTime: startOfDay.addingTimeInterval(3600 * 10), duration: 3600, task: task1_1),
+            // Previous day
+            TimeEntry(startTime: previousDay.addingTimeInterval(3600 * 8), endTime: previousDay.addingTimeInterval(3600 * 9), duration: 3600, task: task2_1),
+            // Next day
+            TimeEntry(startTime: nextDay.addingTimeInterval(3600 * 7), endTime: nextDay.addingTimeInterval(3600 * 8), duration: 3600, task: task3_1),
+            // Current week
+            TimeEntry(startTime: startOfWeek.addingTimeInterval(3600 * 24 * 1 + 3600 * 10), endTime: startOfWeek.addingTimeInterval(3600 * 24 * 1 + 3600 * 12), duration: 7200, task: task2_1),
+            TimeEntry(startTime: startOfWeek.addingTimeInterval(3600 * 24 * 2 + 3600 * 20), endTime: startOfWeek.addingTimeInterval(3600 * 24 * 2 + 3600 * 21), duration: 3600, task: task3_1),
+            TimeEntry(startTime: startOfWeek.addingTimeInterval(3600 * 24 * 3 + 3600 * 14), endTime: startOfWeek.addingTimeInterval(3600 * 24 * 3 + 3600 * 15 + 1800), duration: 5400, task: task1_1),
+            TimeEntry(startTime: startOfWeek.addingTimeInterval(3600 * 24 * 4 + 3600 * 9), endTime: startOfWeek.addingTimeInterval(3600 * 24 * 4 + 3600 * 13), duration: 14400, task: task2_1),
+            // Previous week
+            TimeEntry(startTime: previousWeek.addingTimeInterval(3600 * 24 * 0 + 3600 * 9), endTime: previousWeek.addingTimeInterval(3600 * 24 * 0 + 3600 * 10), duration: 3600, task: task1_1),
+            TimeEntry(startTime: previousWeek.addingTimeInterval(3600 * 24 * 1 + 3600 * 10), endTime: previousWeek.addingTimeInterval(3600 * 24 * 1 + 3600 * 11), duration: 3600, task: task3_1),
+            // Next week
+            TimeEntry(startTime: nextWeek.addingTimeInterval(3600 * 24 * 0 + 3600 * 8), endTime: nextWeek.addingTimeInterval(3600 * 24 * 0 + 3600 * 9), duration: 3600, task: task2_1),
+            // Previous month
+            TimeEntry(startTime: previousMonth.addingTimeInterval(3600 * 24 * 5 + 3600 * 9), endTime: previousMonth.addingTimeInterval(3600 * 24 * 5 + 3600 * 10), duration: 3600, task: task1_1),
+            TimeEntry(startTime: previousMonth.addingTimeInterval(3600 * 24 * 10 + 3600 * 10), endTime: previousMonth.addingTimeInterval(3600 * 24 * 10 + 3600 * 12), duration: 7200, task: task2_1),
+            // Next month
+            TimeEntry(startTime: nextMonth.addingTimeInterval(3600 * 24 * 3 + 3600 * 7), endTime: nextMonth.addingTimeInterval(3600 * 24 * 3 + 3600 * 8), duration: 3600, task: task3_1)
+        ]
+
+        timeEntries.forEach { container.mainContext.insert($0) }
 
         return container
     }

@@ -84,23 +84,6 @@
         }
       }
     },
-    "BreakdownByProject" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Breakdown by Project"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "プロジェクト別の内訳"
-          }
-        }
-      }
-    },
     "Cancel" : {
       "localizations" : {
         "en" : {
@@ -166,7 +149,14 @@
       }
     },
     "Duration" : {
-
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "期間"
+          }
+        }
+      }
     },
     "EndAtFormat %@" : {
       "localizations" : {
@@ -235,23 +225,6 @@
         }
       }
     },
-    "MonthlyReportLater" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Monthly Report (to be implemented later)"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "月別レポート（後で実装）"
-          }
-        }
-      }
-    },
     "More detailed reports and insights will be available here." : {
 
     },
@@ -288,7 +261,14 @@
       }
     },
     "NoDataForPeriod" : {
-
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この期間はデータがありません"
+          }
+        }
+      }
     },
     "NoProjects" : {
       "localizations" : {
@@ -302,23 +282,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "プロジェクトがありません"
-          }
-        }
-      }
-    },
-    "NoRecordsForThisDay" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No records for this day."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "この日は記録がありません。"
           }
         }
       }
@@ -381,7 +344,7 @@
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "履歴"
           }
         }
@@ -404,7 +367,14 @@
       }
     },
     "Project" : {
-
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プロジェクト"
+          }
+        }
+      }
     },
     "ProjectColor" : {
       "localizations" : {
@@ -432,7 +402,7 @@
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "プロジェクト詳細"
           }
         }
@@ -778,23 +748,6 @@
         }
       }
     },
-    "TotalTodayFormat %@" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Total Today: %@"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "今日の合計: %@"
-          }
-        }
-      }
-    },
     "UpgradeToProVersionV2" : {
       "localizations" : {
         "en" : {
@@ -807,23 +760,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Proバージョンにアップグレード（V2）"
-          }
-        }
-      }
-    },
-    "WeeklyReportLater" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Weekly Report (to be implemented later)"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "週別レポート（後で実装）"
           }
         }
       }
