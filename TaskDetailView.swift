@@ -9,16 +9,11 @@ struct TaskDetailView: View {
     @Bindable var task: Task
 
     @State private var newTaskName: String = ""
-    @State private var newTaskMemo: String = ""
-    // ★削除: @State private var newCategory: String = ""
-    @State private var newSatisfactionScore: Int = 5
-
-    // ★削除: let categories = [...]
 
     @State private var isTimerRunning = false
     @State private var currentDuration: TimeInterval = 0
     @State private var timer: Timer?
-    @State private var currentEntry: TimeEntry?
+    @State private var currentEntry: TimeEntry? // 現在計測中のTimeEntry
     private var timerRunningKey: String { "timerRunning_\(task.id.uuidString)" }
     private var timerStartTimeKey: String { "timerStartTime_\(task.id.uuidString)" }
     private var currentEntryIDKey: String { "currentEntryID_\(task.id.uuidString)" }
@@ -27,31 +22,36 @@ struct TaskDetailView: View {
         task.timeEntries?.sorted(by: { $0.startTime > $1.startTime }) ?? []
     }
 
+    // ★修正: 記録停止後のメモ/満足度入力用State
+    @State private var showingLogDetailsSheet = false // シート表示用
+    @State private var inputMemo: String = ""
+    @State private var selectedSentiment: Sentiment = .normal // 満足度をGood/Bad/Normalで保持
+
+    // ★追加: 満足度選択用のEnum
+    enum Sentiment {
+        case good, normal, bad
+
+        var score: Int {
+            switch self {
+            case .good: return 10
+            case .normal: return 5
+            case .bad: return 1
+            }
+        }
+
+        var iconName: String {
+            switch self {
+            case .good: return "hand.thumbsup.fill"
+            case .normal: return "minus.square.fill" // Normalのアイコンはシンプルに
+            case .bad: return "hand.thumbsdown.fill"
+            }
+        }
+    }
+
     var body: some View {
         Form {
-            // タスク詳細編集セクション
-            Section("TaskDetails") {
-                TextField("TaskName", text: $newTaskName)
-                
-                // ★削除: カテゴリ選択ピッカー
-                // Picker("Category", selection: $newCategory) {
-                //     ForEach(categories, id: \.self) { category in
-                //         Text(category).tag(category)
-                //     }
-                // }
-                
-                TextEditor(text: $newTaskMemo)
-                    .frame(minHeight: 100)
-                    .overlay(
-                        Group {
-                            if newTaskMemo.isEmpty {
-                                Text("Memo (Optional)")
-                                    .foregroundColor(.gray)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 12)
-                            }
-                        }, alignment: .topLeading
-                    )
+            Section("Task Details") {
+                TextField("Task Name", text: $newTaskName)
             }
             
             Section {
@@ -64,6 +64,7 @@ struct TaskDetailView: View {
                 Button(action: {
                     if isTimerRunning {
                         stopTimer()
+                        showingLogDetailsSheet = true // シートを表示
                     } else {
                         startTimer()
                     }
@@ -78,13 +79,10 @@ struct TaskDetailView: View {
                 }
             }
 
-            Section("Satisfaction Score") {
-                Stepper(value: $newSatisfactionScore, in: 1...10) {
-                    Text("Score: \(newSatisfactionScore)")
-                }
-            }
+            // ★削除: 満足度入力セクションはシートに移動
+            // Section("Satisfaction Score") { ... }
 
-            Section("PastRecords") {
+            Section("Past Records") {
                 if timeEntries.isEmpty {
                     Text("NoTimeRecordedYet")
                         .foregroundColor(.gray)
@@ -101,6 +99,16 @@ struct TaskDetailView: View {
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
+                            if let score = entry.satisfactionScore {
+                                HStack {
+                                    Text("Satisfaction:") // Localizable.xcstringsにキーを追加
+                                    Image(systemName: score == 10 ? Sentiment.good.iconName : (score == 1 ? Sentiment.bad.iconName : Sentiment.normal.iconName))
+                                        .foregroundColor(score == 10 ? .green : (score == 1 ? .red : .gray))
+                                    Text("\(score)/10") // スコアも表示
+                                }
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            }
                         }
                     }
                     .onDelete(perform: deleteTimeEntries)
@@ -112,7 +120,7 @@ struct TaskDetailView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Save") {
-                    saveTaskDetails()
+                    saveTaskName()
                     dismiss()
                 }
                 .disabled(newTaskName.isEmpty)
@@ -123,24 +131,78 @@ struct TaskDetailView: View {
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
             setupTimerOnAppear()
         }
+        // ★追加: 記録詳細入力シート
+        .sheet(isPresented: $showingLogDetailsSheet) {
+            NavigationView {
+                Form {
+                    Section("Log Details") { // Localizable.xcstringsにキーを追加
+                        TextField("Memo", text: $inputMemo, axis: .vertical) // 複数行対応
+                            .lineLimit(5) // 最大行数
+                        
+                        VStack(alignment: .leading) {
+                            Text("Satisfaction") // Localizable.xcstringsにキーを追加
+                            HStack {
+                                Spacer()
+                                Button {
+                                    selectedSentiment = (selectedSentiment == .good) ? .normal : .good // トグル
+                                } label: {
+                                    Image(systemName: Sentiment.good.iconName)
+                                        .font(.largeTitle)
+                                        .foregroundColor(selectedSentiment == .good ? .green : .gray)
+                                }
+                                Spacer()
+                                Button {
+                                    selectedSentiment = (selectedSentiment == .bad) ? .normal : .bad // トグル
+                                } label: {
+                                    Image(systemName: Sentiment.bad.iconName)
+                                        .font(.largeTitle)
+                                        .foregroundColor(selectedSentiment == .bad ? .red : .gray)
+                                }
+                                Spacer()
+                            }
+                            .buttonStyle(.plain) // ボタンのスタイルをリセット
+                        }
+                    }
+                }
+                .navigationTitle("Log Details") // Localizable.xcstringsにキーを追加
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Cancel") { // Localizable.xcstringsにキーを追加
+                            // キャンセル時にStateをリセット
+                            inputMemo = ""
+                            selectedSentiment = .normal
+                            showingLogDetailsSheet = false
+                            currentEntry = nil // currentEntry をクリア
+                        }
+                    }
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Save") { // Localizable.xcstringsにキーを追加
+                            if let entry = currentEntry {
+                                entry.memo = inputMemo
+                                entry.satisfactionScore = selectedSentiment.score
+                            }
+                            // 保存後にStateをリセット
+                            inputMemo = ""
+                            selectedSentiment = .normal
+                            showingLogDetailsSheet = false
+                            currentEntry = nil // currentEntry をクリア
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private func setupTaskDetailViewOnAppear() {
         setupTimerOnAppear()
         newTaskName = task.name
-        newTaskMemo = task.memo
-        // ★削除: newCategory = task.category
-        newSatisfactionScore = task.satisfactionScore ?? 5
     }
 
-    private func saveTaskDetails() {
+    private func saveTaskName() {
         task.name = newTaskName
-        task.memo = newTaskMemo
-        // ★削除: task.category = newCategory
-        task.satisfactionScore = newSatisfactionScore
     }
 
-    // ... タイマー関連の関数は変更なし ...
     private func setupTimerOnAppear() {
         let storedIsRunning = UserDefaults.standard.bool(forKey: timerRunningKey)
         if storedIsRunning, let storedStartTime = UserDefaults.standard.object(forKey: timerStartTimeKey) as? Date,
@@ -183,7 +245,7 @@ struct TaskDetailView: View {
             task.timeEntries = []
         }
         task.timeEntries?.append(newEntry)
-        currentEntry = newEntry
+        currentEntry = newEntry // 新しいTimeEntryをcurrentEntryに保持
 
         UserDefaults.standard.set(true, forKey: timerRunningKey)
         UserDefaults.standard.set(newEntry.startTime, forKey: timerStartTimeKey)
@@ -204,7 +266,7 @@ struct TaskDetailView: View {
         if let entry = currentEntry {
             entry.endTime = Date()
             entry.duration = currentDuration
-            currentEntry = nil
+            // currentEntry はシートでの保存後に nil にする
             currentDuration = 0
         }
 
@@ -240,24 +302,20 @@ private let itemFormatter: DateFormatter = {
     return formatter
 }()
 
-// Xcodeのプレビュー用（テストデータ）
-// TaskDetailView.swift の末尾にある #Preview ブロック
 #Preview {
     do {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try ModelContainer(for: Project.self, Task.self, TimeEntry.self, configurations: config)
 
-        // ★修正: lifeBalance に引数名を変更
-        let sampleProject = Project(name: "開発", colorHex: "#007AFF", lifeBalance: 30) // この行に lifeBalance を追加
-        let sampleTask = Task(name: "UI実装", memo: "新規機能追加", satisfactionScore: 8, orderIndex: 0, project: sampleProject) // Task の orderIndex も確認
-        let sampleTimeEntry1 = TimeEntry(id: UUID(), startTime: Date().addingTimeInterval(-3600), endTime: Date().addingTimeInterval(-3000), duration: 600, memo: "ボタン配置")
-        let sampleTimeEntry2 = TimeEntry(id: UUID(), startTime: Date().addingTimeInterval(-7200), endTime: Date().addingTimeInterval(-6000), duration: 1200, memo: "データモデル設計")
+        let sampleProject = Project(name: "開発", colorHex: "#007AFF")
+        let sampleTask = Task(name: "UI実装", orderIndex: 0, project: sampleProject)
+        // ★修正: TimeEntryの初期化にmemoとsatisfactionScoreを追加
+        let sampleTimeEntry1 = TimeEntry(id: UUID(), startTime: Date().addingTimeInterval(-3600), endTime: Date().addingTimeInterval(-3000), duration: 600, memo: "ボタン配置", satisfactionScore: 8)
+        let sampleTimeEntry2 = TimeEntry(id: UUID(), startTime: Date().addingTimeInterval(-7200), endTime: Date().addingTimeInterval(-6000), duration: 1200, memo: "データモデル設計", satisfactionScore: 7)
         sampleTask.timeEntries = [sampleTimeEntry1, sampleTimeEntry2]
 
         container.mainContext.insert(sampleProject)
         container.mainContext.insert(sampleTask)
-        container.mainContext.insert(sampleTimeEntry1)
-        container.mainContext.insert(sampleTimeEntry2)
 
         return TaskDetailView(task: sampleTask)
             .modelContainer(container)

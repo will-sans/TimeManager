@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%lld/10" : {
+
+    },
     "%lld%%" : {
 
     },
@@ -193,7 +196,14 @@
         }
       }
     },
+    "Log Details" : {
+
+    },
+    "Memo" : {
+
+    },
     "Memo (Optional)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -334,7 +344,11 @@
         }
       }
     },
+    "Past Records" : {
+
+    },
     "PastRecords" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -505,7 +519,11 @@
         }
       }
     },
+    "Satisfaction" : {
+
+    },
     "Satisfaction Score" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -520,6 +538,9 @@
           }
         }
       }
+    },
+    "Satisfaction:" : {
+
     },
     "Save" : {
       "localizations" : {
@@ -538,6 +559,7 @@
       }
     },
     "Score: %lld" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -649,7 +671,14 @@
         }
       }
     },
+    "Task Details" : {
+
+    },
+    "Task Name" : {
+
+    },
     "TaskDetails" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

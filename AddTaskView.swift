@@ -34,19 +34,14 @@ struct AddTaskView: View {
     }
 
     private func addTask() {
-        // 新しいタスクのorderIndexを設定
-        // 現在のタスクの最大orderIndex + 1 を新しいorderIndexとする
-        // もしタスクが一つもなければ0とする
         let newOrderIndex = (project.tasks?.max(by: { $0.orderIndex < $1.orderIndex })?.orderIndex ?? -1) + 1
         
+        // ★修正: Taskの初期化からmemo, satisfactionScore, categoryを削除
         let newTask = Task(name: taskName,
                            isCompleted: false,
-                           memo: "",
-                           satisfactionScore: nil,
-                           orderIndex: newOrderIndex, // ★修正: orderIndexを設定
+                           orderIndex: newOrderIndex,
                            project: project)
         modelContext.insert(newTask)
-        // project.tasks?.append(newTask) // @Relationship で自動的に追加されるため、明示的な追加は不要
         dismiss()
     }
 }

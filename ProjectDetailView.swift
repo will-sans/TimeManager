@@ -19,66 +19,8 @@ struct ProjectDetailView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("ProjectDetails") {
-                    HStack {
-                        if isEditingProjectName {
-                            TextField("ProjectName", text: $newProjectName)
-                                .onSubmit {
-                                    saveProjectName()
-                                }
-                        } else {
-                            Text(project.name)
-                        }
-                        Spacer()
-                        Button(action: {
-                            if isEditingProjectName {
-                                saveProjectName()
-                            } else {
-                                newProjectName = project.name
-                                isEditingProjectName = true
-                            }
-                        }) {
-                            Image(systemName: isEditingProjectName ? "checkmark.circle.fill" : "pencil.circle.fill")
-                        }
-                    }
-                    ColorPicker("ProjectColor", selection: Binding(
-                        get: { Color(hex: project.colorHex) ?? .blue },
-                        set: { project.colorHex = $0.toHex() ?? "#FF0000" }
-                    ))
-
-                    // ★削除: Happiness Weight Stepper
-                    // Stepper(value: $project.happinessWeight, in: 0...100) {
-                    //     Text("Happiness Weight: \(project.happinessWeight)%")
-                    // }
-                }
-
-                Section("Tasks") {
-                    if sortedTasks.isEmpty {
-                        ContentUnavailableView("NoTasks", systemImage: "checklist")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                    } else {
-                        ForEach(sortedTasks) { task in
-                            NavigationLink(destination: TaskDetailView(task: task)) {
-                                HStack {
-                                    Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
-                                        .onTapGesture {
-                                            task.isCompleted.toggle()
-                                        }
-                                    Text(task.name)
-                                    Spacer()
-                                    if !task.memo.isEmpty {
-                                        Image(systemName: "note.text")
-                                            .font(.caption)
-                                            .foregroundColor(.gray)
-                                    }
-                                }
-                            }
-                        }
-                        .onMove(perform: moveTasks)
-                        .onDelete(perform: deleteTasks)
-                    }
-                }
+                projectDetailsSection // プロジェクト詳細セクションを切り出し
+                tasksSection // タスクセクションを切り出し
             }
             .navigationTitle(project.name)
             .navigationBarTitleDisplayMode(.inline)
@@ -99,6 +41,75 @@ struct ProjectDetailView: View {
             }
         }
     }
+
+    // MARK: - ViewBuilder プロパティでセクションを分割
+
+    @ViewBuilder
+    private var projectDetailsSection: some View {
+        Section("ProjectDetails") {
+            HStack {
+                if isEditingProjectName {
+                    TextField("ProjectName", text: $newProjectName)
+                        .onSubmit {
+                            saveProjectName()
+                        }
+                } else {
+                    Text(project.name)
+                }
+                Spacer()
+                Button(action: {
+                    if isEditingProjectName {
+                        saveProjectName()
+                    } else {
+                        newProjectName = project.name
+                        isEditingProjectName = true
+                    }
+                }) {
+                    Image(systemName: isEditingProjectName ? "checkmark.circle.fill" : "pencil.circle.fill")
+                }
+            }
+            ColorPicker("ProjectColor", selection: Binding(
+                get: { Color(hex: project.colorHex) ?? .blue },
+                set: { project.colorHex = $0.toHex() ?? "#FF0000" }
+            ))
+        }
+    }
+
+    @ViewBuilder
+    private var tasksSection: some View {
+        Section("Tasks") {
+            if sortedTasks.isEmpty {
+                ContentUnavailableView("NoTasks", systemImage: "checklist")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+            } else {
+                ForEach(sortedTasks) { task in
+                    NavigationLink(destination: TaskDetailView(task: task)) {
+                        HStack {
+                            Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
+                                .onTapGesture {
+                                    task.isCompleted.toggle()
+                                }
+                            Text(task.name)
+                            Spacer()
+                            // task.memo は TimeEntry に移動したので、task.memo は常に空になるはずです
+                            // TimeEntry のメモを表示するには、TaskDetailView 内の TimeEntry リストで確認します。
+                            // ここは Task 自体のメモではなくなったため、表示を削除します。
+                            // if !task.memo.isEmpty {
+                            //     Image(systemName: "note.text")
+                            //         .font(.caption)
+                            //         .foregroundColor(.gray)
+                            // }
+                        }
+                    }
+                }
+                .onMove(perform: moveTasks)
+                .onDelete(perform: deleteTasks)
+            }
+        }
+    }
+
+    // MARK: - Helper Functions
 
     private func saveProjectName() {
         project.name = newProjectName
