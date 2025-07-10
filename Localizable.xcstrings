@@ -178,7 +178,14 @@
       }
     },
     "Future Reports" : {
-
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将来のレポート"
+          }
+        }
+      }
     },
     "General" : {
       "localizations" : {
@@ -197,24 +204,21 @@
       }
     },
     "Log Details" : {
-
-    },
-    "Memo" : {
-
-    },
-    "Memo (Optional)" : {
-      "extractionState" : "stale",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Memo (Optional)"
-          }
-        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "メモ（オプション）"
+            "value" : "ログ詳細"
+          }
+        }
+      }
+    },
+    "Memo" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メモ"
           }
         }
       }
@@ -236,7 +240,14 @@
       }
     },
     "More detailed reports and insights will be available here." : {
-
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "より詳細なレポートと洞察がここに表示されます。"
+          }
+        }
+      }
     },
     "NewProject" : {
       "localizations" : {
@@ -345,17 +356,7 @@
       }
     },
     "Past Records" : {
-
-    },
-    "PastRecords" : {
-      "extractionState" : "stale",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Past Records"
-          }
-        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -520,17 +521,7 @@
       }
     },
     "Satisfaction" : {
-
-    },
-    "Satisfaction Score" : {
-      "extractionState" : "stale",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Satisfaction Score"
-          }
-        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -540,7 +531,14 @@
       }
     },
     "Satisfaction:" : {
-
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "満足度:"
+          }
+        }
+      }
     },
     "Save" : {
       "localizations" : {
@@ -554,23 +552,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "保存"
-          }
-        }
-      }
-    },
-    "Score: %lld" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Score: %lld"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "スコア: %lld"
           }
         }
       }
@@ -672,24 +653,21 @@
       }
     },
     "Task Details" : {
-
-    },
-    "Task Name" : {
-
-    },
-    "TaskDetails" : {
-      "extractionState" : "stale",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Task Details"
-          }
-        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "タスク詳細"
+          }
+        }
+      }
+    },
+    "Task Name" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "タスク名"
           }
         }
       }
@@ -743,7 +721,14 @@
       }
     },
     "Time Allocation" : {
-
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "時間配分"
+          }
+        }
+      }
     },
     "TimeFormat %@" : {
       "localizations" : {
